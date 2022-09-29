@@ -2,7 +2,7 @@
 title: "visualization_with_ggplot2"
 author: "Emily Potts"
 date: "2022-09-29"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -11,7 +11,7 @@ library(tidyverse)
 library(ggridges)
 ```
 
-
+This code gets the data from the course website
 ```{r}
 weather_df = 
   rnoaa::meteo_pull_monitors(
@@ -28,5 +28,70 @@ weather_df =
     tmin = tmin / 10,
     tmax = tmax / 10) %>%
   select(name, id, everything())
+
+weather_df
+```
+
+
+# Basic scatterplot
+```{r}
+ggplot(weather_df, aes(x = tmin, y = tmax)) + geom_point()
+```
+
+Make the same scatterplot, but different
+
+```{r}
+weather_df %>%
+  drop_na() %>%
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point()
+```
+
+Make the same scatterplot, but different again
+```{r}
+weather_scatterplot =
+  weather_df %>%
+  drop_na() %>%
+  ggplot(aes(x = tmin, y = tmax))
+
+weather_scatterplot + geom_point()
+```
+
+## fancy
+```{r}
+weather_df %>%
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point(alpha = 0.3) + 
+  geom_smooth(se = FALSE) 
+```
+
+fancy with separate panels
+```{r}
+weather_df %>%
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point(alpha = 0.3) + 
+  geom_smooth(se = FALSE) + 
+  facet_grid(. ~ name)
+```
+
+spicing it up lol (seasonal trends)
+```{r}
+weather_df %>%
+  ggplot(aes(x = date, y = tmax, color = name)) + 
+  geom_point(aes(size = prcp), alpha = .5) +
+  geom_smooth(se = FALSE)
+```
+
+seasonal trends with panels
+```{r}
+weather_df %>%
+  ggplot(aes(x = date, y = tmax, color = name)) + 
+  geom_point(aes(size = prcp), alpha = .5) +
+  geom_smooth(se = FALSE) + 
+  facet_grid(. ~ name)
+```
+
+```{r}
+
 ```
 
