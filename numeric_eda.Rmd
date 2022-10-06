@@ -75,7 +75,7 @@ weather_df %>%
 
 
 # a brief aside... 2x2 tables
-
+tidy
 ```{r}
 weather_df %>% 
   mutate(
@@ -88,4 +88,72 @@ weather_df %>%
   group_by(name, cold) %>% 
   summarize(count = n())
 ```
+
+non-tidy
+```{r}
+weather_df %>% 
+  mutate(cold = case_when(
+    tmax <  5 ~ "cold",
+    tmax >= 5 ~ "not_cold",
+    TRUE     ~ ""
+  )) %>% 
+  filter(name != "Waikiki_HA") %>% 
+  janitor::tabyl(name, cold)
+```
+
+# general summaries
+```{r}
+weather_df %>%
+  group_by(month) %>%
+  summarize(
+    mean_tmax = mean(tmax, na.rm = TRUE),
+    mean_prec = mean(prcp, na.rm = TRUE),
+    median_tmax = median(tmax, na.rm = TRUE),
+    sd_tmax = sd(tmax, na.rm = TRUE)
+  )
+```
+
+group by more than one variable
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(
+    mean_tmax = mean(tmax),
+    median_tmax = median(tmax))
+```
+
+summarize multiple columns using the same summary, the across function is helpful
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(across(tmin:prcp, mean))
+
+```
+
+create a plot based on the monthly summary
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(mean_tmax = mean(tmax)) %>%
+  ggplot(aes(x = month, y = mean_tmax, color = name)) + 
+    geom_point() + geom_line() + 
+    theme(legend.position = "bottom")
+```
+
+The results of group_by() and summarize() are generally tidy, but presenting reader-friendly results for this kind of exploratory analysis often benefits from some un-tidying. For example, the table below shows month-by-month average max temperatures in a more human-readable format
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(mean_tmax = mean(tmax)) %>% 
+  pivot_wider(
+    names_from = name,
+    values_from = mean_tmax) %>% 
+  knitr::kable(digits = 1)
+```
+
+
+
+
+
+
 
