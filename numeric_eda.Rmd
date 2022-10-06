@@ -152,6 +152,71 @@ weather_df %>%
 ```
 
 
+# grouped mutate
+```{r}
+weather_df %>% 
+  group_by(name) %>% 
+  mutate(
+    mean_tmax = mean(tmax, na.rm = TRUE),
+    centered_tmax = tmax - mean_tmax) %>% 
+  ggplot(aes(x = date, y = centered_tmax, color = name)) + 
+    geom_point() 
+```
+
+# window functions
+
+First, we can find the max temperature ranking within month.
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  mutate(temp_ranking = min_rank(tmax))
+```
+
+This sort of ranking is useful when filtering data based on rank. We could, for example, keep only the day with the lowest max temperature within each month:
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  filter(min_rank(tmax) < 2)
+```
+
+We could also keep the three days with the highest max temperature:
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  filter(min_rank(desc(tmax)) < 4)
+```
+
+
+## logged observations
+
+Offsets, especially lags, are used to compare an observation to it’s previous value. This is useful, for example, to find the day-by-day change in max temperature within each station over the year:
+```{r}
+weather_df %>%
+  group_by(name) %>%
+  mutate(temp_change = tmax - lag(tmax))
+```
+
+This kind of variable might be used to quantify the day-by-day variability in max temperature, or to identify the largest one-day increase:
+```{r}
+weather_df %>%
+  group_by(name) %>%
+  mutate(temp_change = tmax - lag(tmax)) %>%
+  summarize(
+    temp_change_sd = sd(temp_change, na.rm = TRUE),
+    temp_change_max = max(temp_change, na.rm = TRUE))
+```
+
+
+## one other window function
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  mutate(
+    max_temp_ranking = min_rank(tmax)
+    )
+```
+
+
 
 
 
