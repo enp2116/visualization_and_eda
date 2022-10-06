@@ -1,0 +1,91 @@
+---
+title: "numeric_eda"
+author: "Emily Potts"
+date: "2022-10-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+weather_df =  
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USC00519397", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USC00519397 = "Waikiki_HA",
+      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10,
+    month = lubridate::floor_date(date, unit = "month")) %>%
+  select(name, id, everything())
+```
+
+# group_by()
+```{r}
+weather_df %>% 
+    group_by(name, month)
+```
+
+
+# summarize()
+
+let's group then summarize!
+
+## counting
+```{r}
+weather_df %>% 
+    group_by(name, month) %>% 
+  summarize(
+    n_obs = n()
+  )
+```
+
+counting other ways
+```{r}
+weather_df %>%
+  count(month, name = "n_obs")
+```
+
+don't use table()
+```{r, eval = FALSE}
+weather_df %>%
+  pull(month) %>% 
+  table
+```
+
+
+
+```{r}
+weather_df %>% 
+  group_by(month) %>% 
+  summarize(
+    n_obs = n(),
+    n_dist = n_distinct(date)
+  )
+```
+
+
+# a brief aside... 2x2 tables
+
+```{r}
+weather_df %>% 
+  mutate(
+    cold = case_when(
+      tmax <  5 ~ "cold",
+      tmax >= 5 ~ "not_cold",
+      TRUE      ~ ""
+  )) %>% 
+  filter(name != "Waikiki_HA") %>% 
+  group_by(name, cold) %>% 
+  summarize(count = n())
+```
+
